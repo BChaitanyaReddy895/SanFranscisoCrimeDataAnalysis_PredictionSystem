@@ -1,0 +1,22 @@
+{
+  "random_forest": {
+    "type": "RandomForestClassificationModel",
+    "numTrees": 200,
+    "maxDepth": 20,
+    "accuracy": 0.9885395537525355,
+    "f1_score": 0.9886017003998804
+  },
+  "gradient_boosted_trees": {
+    "type": "GBTClassificationModel",
+    "maxIter": 30,
+    "maxDepth": 8,
+    "accuracy": 0.9913793103448276,
+    "f1_score": 0.9914055369446755
+  },
+  "logistic_regression": {
+    "type": "LogisticRegressionModel",
+    "maxIter": 200,
+    "accuracy": 0.821501014198783,
+    "f1_score": 0.8118251765478433
+  }
+}

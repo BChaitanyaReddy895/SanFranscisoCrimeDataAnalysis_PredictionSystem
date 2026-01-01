@@ -1,0 +1,2670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 SF Crime Analytics Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --accent: #14b8a6;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --dark-card: #1e293b;
+            --dark-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(20, 184, 166, 0.05) 0%, transparent 70%);
+            animation: bgPulse 15s ease-in-out infinite;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Floating Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--primary-light);
+            border-radius: 50%;
+            animation: float 20s infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo i {
+            font-size: 1.8rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 8px;
+        }
+
+        .nav-link {
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: var(--dark-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 70px;
+            padding: 2rem;
+            max-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Section Styling */
+        .section {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 50%, #818cf8 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.2); }
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            line-height: 1.8;
+        }
+
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--gradient-3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .stat-card:nth-child(1)::before { background: var(--gradient-1); }
+        .stat-card:nth-child(2)::before { background: var(--gradient-2); }
+        .stat-card:nth-child(3)::before { background: var(--gradient-3); }
+        .stat-card:nth-child(4)::before { background: var(--gradient-4); }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--primary);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-card:nth-child(1) .stat-card-icon { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+        .stat-card:nth-child(2) .stat-card-icon { background: rgba(236, 72, 153, 0.2); color: var(--secondary); }
+        .stat-card:nth-child(3) .stat-card-icon { background: rgba(20, 184, 166, 0.2); color: var(--accent); }
+        .stat-card:nth-child(4) .stat-card-icon { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+
+        .stat-card-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.85rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+        }
+
+        .trend-up { background: rgba(34, 197, 94, 0.2); color: var(--success); }
+        .trend-down { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        .stat-card-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* Model Performance Cards */
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .model-card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .model-card.best {
+            border-color: var(--success);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.2);
+        }
+
+        .model-card.best::after {
+            content: '🏆 BEST';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--gradient-4);
+            color: var(--dark);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .model-name {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .model-name i {
+            font-size: 1.5rem;
+        }
+
+        .model-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 1rem;
+            background: var(--dark);
+            border-radius: 12px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Accuracy Ring */
+        .accuracy-ring {
+            width: 120px;
+            height: 120px;
+            margin: 1rem auto;
+            position: relative;
+        }
+
+        .accuracy-ring svg {
+            transform: rotate(-90deg);
+        }
+
+        .accuracy-ring circle {
+            fill: none;
+            stroke-width: 10;
+        }
+
+        .accuracy-ring .bg {
+            stroke: var(--dark);
+        }
+
+        .accuracy-ring .progress {
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .accuracy-ring .value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-title i {
+            color: var(--primary-light);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Visualization Gallery */
+        .viz-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .viz-card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .viz-card:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-glow);
+            border-color: var(--primary);
+        }
+
+        .viz-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .viz-placeholder {
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            background: linear-gradient(135deg, var(--dark) 0%, var(--dark-hover) 100%);
+        }
+
+        .viz-info {
+            padding: 1.5rem;
+        }
+
+        .viz-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .viz-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Heat Map Section */
+        .heatmap-container {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .heatmap-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .heatmap-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 15px;
+        }
+
+        .open-map-btn {
+            padding: 12px 24px;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .open-map-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Insights Section */
+        .insights-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .insight-card {
+            background: var(--dark-card);
+            border-radius: 20px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .insight-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+        }
+
+        .insight-card:nth-child(1)::before { background: var(--gradient-1); }
+        .insight-card:nth-child(2)::before { background: var(--gradient-2); }
+        .insight-card:nth-child(3)::before { background: var(--gradient-3); }
+        .insight-card:nth-child(4)::before { background: var(--gradient-4); }
+
+        .insight-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .insight-card:nth-child(1) .insight-icon { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+        .insight-card:nth-child(2) .insight-icon { background: rgba(236, 72, 153, 0.2); color: var(--secondary); }
+        .insight-card:nth-child(3) .insight-icon { background: rgba(20, 184, 166, 0.2); color: var(--accent); }
+        .insight-card:nth-child(4) .insight-icon { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+
+        .insight-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .insight-desc {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            margin-top: 3rem;
+            color: var(--text-muted);
+        }
+
+        .footer-logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 15px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 0 1rem;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .hero-stats {
+                gap: 1.5rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-card {
+                min-width: auto;
+            }
+        }
+
+        /* Loading Animation */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--dark-hover);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+
+        /* Pulse Animation for Live Data */
+        .pulse {
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: var(--success);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
+    <div class="particles" id="particles"></div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i>
+            SF Crime Analytics
+        </div>
+        <div class="nav-links">
+            <a class="nav-link active" onclick="showSection('overview')">
+                <i class="fas fa-home"></i> Overview
+            </a>
+            <a class="nav-link" onclick="showSection('models')">
+                <i class="fas fa-brain"></i> Models
+            </a>
+            <a class="nav-link" onclick="showSection('charts')">
+                <i class="fas fa-chart-bar"></i> Charts
+            </a>
+            <a class="nav-link" onclick="showSection('heatmap')">
+                <i class="fas fa-map-marked-alt"></i> Heat Map
+            </a>
+            <a class="nav-link" onclick="showSection('insights')">
+                <i class="fas fa-lightbulb"></i> Insights
+            </a>
+            <a class="nav-link" onclick="showSection('predict')">
+                <i class="fas fa-magic"></i> Predict
+            </a>
+        </div>
+        <div class="live-indicator">
+            <span class="live-dot"></span>
+            Analysis Complete
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Overview Section -->
+        <section id="overview" class="section active">
+            <div class="hero">
+                <h1>🔍 Crime Hotspot Prediction</h1>
+                <p>Advanced machine learning analysis of San Francisco crime data using PySpark. 
+                   Achieving <strong>99.14% accuracy</strong> in predicting high-risk crime zones 
+                   to help law enforcement optimize resource allocation.</p>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="hero-stat-value" id="totalRecords">50,136</div>
+                        <div class="hero-stat-label">Records Analyzed</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">38</div>
+                        <div class="hero-stat-label">Crime Categories</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">99.14%</div>
+                        <div class="hero-stat-label">Best Accuracy</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="hero-stat-value">3</div>
+                        <div class="hero-stat-label">ML Models</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-database"></i>
+                        </div>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up"></i> 15%
+                        </div>
+                    </div>
+                    <div class="stat-card-value">878K+</div>
+                    <div class="stat-card-label">Total Dataset Records</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up"></i> 80%
+                        </div>
+                    </div>
+                    <div class="stat-card-value">40,276</div>
+                    <div class="stat-card-label">Training Samples</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-flask"></i>
+                        </div>
+                        <div class="stat-card-trend trend-up">
+                            <i class="fas fa-arrow-up"></i> 20%
+                        </div>
+                    </div>
+                    <div class="stat-card-value">9,860</div>
+                    <div class="stat-card-label">Test Samples</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-header">
+                        <div class="stat-card-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="stat-card-trend trend-down">
+                            <i class="fas fa-arrow-down"></i> 5
+                        </div>
+                    </div>
+                    <div class="stat-card-value">10</div>
+                    <div class="stat-card-label">SF Districts</div>
+                </div>
+            </div>
+
+            <!-- Quick Model Comparison -->
+            <div class="chart-card" style="margin-bottom: 2rem;">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-trophy"></i>
+                        Model Performance Overview
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="modelComparisonChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Models Section -->
+        <section id="models" class="section">
+            <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">
+                <i class="fas fa-brain" style="color: var(--primary-light);"></i>
+                Machine Learning Models
+            </h2>
+            
+            <div class="models-grid">
+                <!-- Random Forest -->
+                <div class="model-card">
+                    <div class="model-name">
+                        <i class="fas fa-tree" style="color: #22c55e;"></i>
+                        Random Forest Classifier
+                    </div>
+                    <div class="accuracy-ring">
+                        <svg width="120" height="120">
+                            <circle class="bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="progress" cx="60" cy="60" r="50" 
+                                    stroke="#22c55e" 
+                                    stroke-dasharray="314"
+                                    stroke-dashoffset="3.6"></circle>
+                        </svg>
+                        <span class="value" style="color: #22c55e;">98.85%</span>
+                    </div>
+                    <div class="model-metrics">
+                        <div class="metric">
+                            <div class="metric-value" style="color: #60a5fa;">98.85%</div>
+                            <div class="metric-label">Precision</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #f472b6;">98.85%</div>
+                            <div class="metric-label">Recall</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #34d399;">98.85%</div>
+                            <div class="metric-label">F1-Score</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #fbbf24;">99.7%</div>
+                            <div class="metric-label">AUC-ROC</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gradient Boosted Trees - BEST -->
+                <div class="model-card best">
+                    <div class="model-name">
+                        <i class="fas fa-rocket" style="color: #f59e0b;"></i>
+                        Gradient Boosted Trees
+                    </div>
+                    <div class="accuracy-ring">
+                        <svg width="120" height="120">
+                            <circle class="bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="progress" cx="60" cy="60" r="50" 
+                                    stroke="#f59e0b" 
+                                    stroke-dasharray="314"
+                                    stroke-dashoffset="2.7"></circle>
+                        </svg>
+                        <span class="value" style="color: #f59e0b;">99.14%</span>
+                    </div>
+                    <div class="model-metrics">
+                        <div class="metric">
+                            <div class="metric-value" style="color: #60a5fa;">99.14%</div>
+                            <div class="metric-label">Precision</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #f472b6;">99.14%</div>
+                            <div class="metric-label">Recall</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #34d399;">99.14%</div>
+                            <div class="metric-label">F1-Score</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #fbbf24;">99.8%</div>
+                            <div class="metric-label">AUC-ROC</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logistic Regression -->
+                <div class="model-card">
+                    <div class="model-name">
+                        <i class="fas fa-chart-line" style="color: #6366f1;"></i>
+                        Logistic Regression
+                    </div>
+                    <div class="accuracy-ring">
+                        <svg width="120" height="120">
+                            <circle class="bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="progress" cx="60" cy="60" r="50" 
+                                    stroke="#6366f1" 
+                                    stroke-dasharray="314"
+                                    stroke-dashoffset="56"></circle>
+                        </svg>
+                        <span class="value" style="color: #6366f1;">82.15%</span>
+                    </div>
+                    <div class="model-metrics">
+                        <div class="metric">
+                            <div class="metric-value" style="color: #60a5fa;">82.10%</div>
+                            <div class="metric-label">Precision</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #f472b6;">82.15%</div>
+                            <div class="metric-label">Recall</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #34d399;">82.08%</div>
+                            <div class="metric-label">F1-Score</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-value" style="color: #fbbf24;">89.5%</div>
+                            <div class="metric-label">AUC-ROC</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feature Importance -->
+            <div class="chart-card" style="margin-top: 2rem;">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-sort-amount-down"></i>
+                        Top Features Importance
+                    </div>
+                </div>
+                <div class="chart-container" style="height: 400px;">
+                    <canvas id="featureImportanceChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Charts Section -->
+        <section id="charts" class="section">
+            <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">
+                <i class="fas fa-chart-pie" style="color: var(--secondary);"></i>
+                Crime Analytics Charts
+            </h2>
+
+            <div class="charts-grid">
+                <!-- Crime by Hour -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-clock"></i>
+                            Crimes by Hour of Day
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hourlyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Crime by Day -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-calendar-week"></i>
+                            Crimes by Day of Week
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Crime Categories -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-tags"></i>
+                            Top Crime Categories
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Crime by District -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-building"></i>
+                            Crimes by District
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="districtChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visualization Gallery -->
+            <h3 style="font-size: 1.5rem; margin: 2rem 0 1.5rem;">
+                <i class="fas fa-images" style="color: var(--accent);"></i>
+                Generated Visualizations
+            </h3>
+            <div class="viz-gallery">
+                <div class="viz-card" onclick="openModal('crime_analysis_dashboard.png')">
+                    <div class="viz-placeholder">📊</div>
+                    <div class="viz-info">
+                        <div class="viz-title">Crime Analysis Dashboard</div>
+                        <div class="viz-desc">Comprehensive 4-panel crime distribution analysis</div>
+                    </div>
+                </div>
+                <div class="viz-card" onclick="openModal('feature_importance.png')">
+                    <div class="viz-placeholder">📈</div>
+                    <div class="viz-info">
+                        <div class="viz-title">Feature Importance</div>
+                        <div class="viz-desc">Top 15 features driving crime prediction</div>
+                    </div>
+                </div>
+                <div class="viz-card" onclick="openModal('confusion_matrix_gradient_boosted_trees.png')">
+                    <div class="viz-placeholder">🎯</div>
+                    <div class="viz-info">
+                        <div class="viz-title">GBT Confusion Matrix</div>
+                        <div class="viz-desc">Best model prediction accuracy breakdown</div>
+                    </div>
+                </div>
+                <div class="viz-card" onclick="openModal('confusion_matrix_random_forest.png')">
+                    <div class="viz-placeholder">🌲</div>
+                    <div class="viz-info">
+                        <div class="viz-title">Random Forest Confusion Matrix</div>
+                        <div class="viz-desc">Ensemble model performance visualization</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Heat Map Section -->
+        <section id="heatmap" class="section">
+            <div class="heatmap-container">
+                <div class="heatmap-header">
+                    <div class="chart-title">
+                        <i class="fas fa-fire"></i>
+                        Interactive Crime Heat Map
+                    </div>
+                    <button class="open-map-btn" onclick="window.open('crime_heatmap.html', '_blank')">
+                        <i class="fas fa-external-link-alt"></i>
+                        Open Full Screen
+                    </button>
+                </div>
+                <iframe src="crime_heatmap.html" class="heatmap-frame"></iframe>
+            </div>
+
+            <!-- District Risk Analysis -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        District Risk Analysis
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="riskChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Insights Section -->
+        <section id="insights" class="section">
+            <h2 style="font-size: 2rem; margin-bottom: 2rem; text-align: center;">
+                <i class="fas fa-lightbulb" style="color: var(--warning);"></i>
+                Key Insights & Recommendations
+            </h2>
+
+            <div class="insights-grid">
+                <div class="insight-card">
+                    <div class="insight-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="insight-title">Temporal Patterns</div>
+                    <div class="insight-desc">
+                        Crime peaks during <strong>afternoon to evening hours (2PM-8PM)</strong>. 
+                        Fridays show significantly elevated criminal activity. 
+                        Consider increased patrol presence during these high-risk windows.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">
+                        <i class="fas fa-map-pin"></i>
+                    </div>
+                    <div class="insight-title">Geographic Hotspots</div>
+                    <div class="insight-desc">
+                        <strong>Southern, Mission, and Tenderloin</strong> districts consistently 
+                        show the highest crime density. Strategic resource allocation to these 
+                        areas can significantly improve crime prevention effectiveness.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <div class="insight-title">Property Crime Focus</div>
+                    <div class="insight-desc">
+                        <strong>Larceny/Theft and Vehicle Theft</strong> dominate the crime landscape, 
+                        accounting for over 40% of incidents. Targeted anti-theft initiatives 
+                        could yield the greatest reduction in overall crime rates.
+                    </div>
+                </div>
+
+                <div class="insight-card">
+                    <div class="insight-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="insight-title">Predictive Accuracy</div>
+                    <div class="insight-desc">
+                        The <strong>Gradient Boosted Trees model achieves 99.14% accuracy</strong> 
+                        in identifying high-risk zones. This enables proactive deployment 
+                        strategies based on predicted crime probability.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="chart-card" style="margin-top: 2rem;">
+                <div class="chart-title" style="margin-bottom: 1.5rem;">
+                    <i class="fas fa-check-circle" style="color: var(--success);"></i>
+                    Actionable Recommendations
+                </div>
+                <div style="display: grid; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 1rem; background: var(--dark); border-radius: 12px;">
+                        <span style="width: 30px; height: 30px; background: var(--gradient-1); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</span>
+                        <span>Deploy additional patrol units to Southern & Mission districts during peak hours (2PM-8PM)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 1rem; background: var(--dark); border-radius: 12px;">
+                        <span style="width: 30px; height: 30px; background: var(--gradient-2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</span>
+                        <span>Implement vehicle theft prevention campaigns in high-risk parking areas</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 1rem; background: var(--dark); border-radius: 12px;">
+                        <span style="width: 30px; height: 30px; background: var(--gradient-3); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</span>
+                        <span>Use the interactive heat map for daily patrol route optimization</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 15px; padding: 1rem; background: var(--dark); border-radius: 12px;">
+                        <span style="width: 30px; height: 30px; background: var(--gradient-4); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold;">4</span>
+                        <span>Integrate predictive model into real-time dispatch systems for proactive response</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Prediction Section -->
+        <section id="predict" class="section">
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">
+                <i class="fas fa-magic" style="color: var(--secondary);"></i>
+                Crime Risk Prediction
+            </h2>
+            <p style="text-align: center; color: var(--text-muted); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+                Enter location and time details to predict the crime risk level using our trained ML model with <strong>99.14% accuracy</strong>
+            </p>
+
+            <div class="predict-container">
+                <div class="predict-grid">
+                    <!-- Input Form -->
+                    <div class="predict-form-card">
+                        <div class="form-title">
+                            <i class="fas fa-edit"></i>
+                            Enter Prediction Parameters
+                        </div>
+
+                        <form id="predictionForm">
+                            <!-- District Selection -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-building"></i>
+                                    Police District
+                                </label>
+                                <select class="form-select" id="district" required>
+                                    <option value="">Select a district...</option>
+                                    <option value="SOUTHERN">Southern</option>
+                                    <option value="MISSION">Mission</option>
+                                    <option value="NORTHERN">Northern</option>
+                                    <option value="BAYVIEW">Bayview</option>
+                                    <option value="CENTRAL">Central</option>
+                                    <option value="TENDERLOIN">Tenderloin</option>
+                                    <option value="INGLESIDE">Ingleside</option>
+                                    <option value="TARAVAL">Taraval</option>
+                                    <option value="PARK">Park</option>
+                                    <option value="RICHMOND">Richmond</option>
+                                </select>
+                                <div class="quick-select">
+                                    <button type="button" class="quick-btn" onclick="setDistrict('SOUTHERN')">Southern</button>
+                                    <button type="button" class="quick-btn" onclick="setDistrict('MISSION')">Mission</button>
+                                    <button type="button" class="quick-btn" onclick="setDistrict('TENDERLOIN')">Tenderloin</button>
+                                </div>
+                            </div>
+
+                            <!-- Crime Category -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-tags"></i>
+                                    Crime Category
+                                </label>
+                                <select class="form-select" id="category" required>
+                                    <option value="">Select crime type...</option>
+                                    <option value="LARCENY/THEFT">Larceny/Theft</option>
+                                    <option value="VEHICLE THEFT">Vehicle Theft</option>
+                                    <option value="BURGLARY">Burglary</option>
+                                    <option value="ASSAULT">Assault</option>
+                                    <option value="VANDALISM">Vandalism</option>
+                                    <option value="ROBBERY">Robbery</option>
+                                    <option value="DRUG/NARCOTIC">Drug/Narcotic</option>
+                                    <option value="FRAUD">Fraud</option>
+                                    <option value="TRESPASS">Trespass</option>
+                                    <option value="OTHER OFFENSES">Other Offenses</option>
+                                    <option value="NON-CRIMINAL">Non-Criminal</option>
+                                    <option value="WARRANTS">Warrants</option>
+                                </select>
+                            </div>
+
+                            <!-- Time Selection -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-clock"></i>
+                                        Hour of Day
+                                    </label>
+                                    <select class="form-select" id="hour" required>
+                                        <option value="">Select hour...</option>
+                                        <option value="0">12:00 AM (Midnight)</option>
+                                        <option value="1">1:00 AM</option>
+                                        <option value="2">2:00 AM</option>
+                                        <option value="3">3:00 AM</option>
+                                        <option value="4">4:00 AM</option>
+                                        <option value="5">5:00 AM</option>
+                                        <option value="6">6:00 AM</option>
+                                        <option value="7">7:00 AM</option>
+                                        <option value="8">8:00 AM</option>
+                                        <option value="9">9:00 AM</option>
+                                        <option value="10">10:00 AM</option>
+                                        <option value="11">11:00 AM</option>
+                                        <option value="12">12:00 PM (Noon)</option>
+                                        <option value="13">1:00 PM</option>
+                                        <option value="14">2:00 PM</option>
+                                        <option value="15">3:00 PM</option>
+                                        <option value="16">4:00 PM</option>
+                                        <option value="17">5:00 PM</option>
+                                        <option value="18">6:00 PM</option>
+                                        <option value="19">7:00 PM</option>
+                                        <option value="20">8:00 PM</option>
+                                        <option value="21">9:00 PM</option>
+                                        <option value="22">10:00 PM</option>
+                                        <option value="23">11:00 PM</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-calendar-day"></i>
+                                        Day of Week
+                                    </label>
+                                    <select class="form-select" id="dayOfWeek" required>
+                                        <option value="">Select day...</option>
+                                        <option value="Monday">Monday</option>
+                                        <option value="Tuesday">Tuesday</option>
+                                        <option value="Wednesday">Wednesday</option>
+                                        <option value="Thursday">Thursday</option>
+                                        <option value="Friday">Friday</option>
+                                        <option value="Saturday">Saturday</option>
+                                        <option value="Sunday">Sunday</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Coordinates -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Longitude (X)
+                                    </label>
+                                    <input type="number" class="form-input" id="longitude" 
+                                           placeholder="-122.4194" step="0.0001" 
+                                           min="-122.52" max="-122.35" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        Latitude (Y)
+                                    </label>
+                                    <input type="number" class="form-input" id="latitude" 
+                                           placeholder="37.7749" step="0.0001"
+                                           min="37.70" max="37.83" required>
+                                </div>
+                            </div>
+
+                            <div class="quick-select" style="margin-bottom: 1rem;">
+                                <span style="color: var(--text-muted); font-size: 0.85rem; margin-right: 8px;">Quick locations:</span>
+                                <button type="button" class="quick-btn" onclick="setLocation(-122.4089, 37.7845, 'CENTRAL')">Union Square</button>
+                                <button type="button" class="quick-btn" onclick="setLocation(-122.4194, 37.7749, 'SOUTHERN')">Downtown</button>
+                                <button type="button" class="quick-btn" onclick="setLocation(-122.4183, 37.7599, 'MISSION')">Mission</button>
+                                <button type="button" class="quick-btn" onclick="setLocation(-122.4534, 37.7694, 'PARK')">Golden Gate Park</button>
+                            </div>
+
+                            <!-- Month -->
+                            <div class="form-group">
+                                <label class="form-label">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    Month
+                                </label>
+                                <select class="form-select" id="month" required>
+                                    <option value="">Select month...</option>
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="predict-btn" id="predictBtn">
+                                <i class="fas fa-brain"></i>
+                                Predict Crime Risk
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="result-card" id="resultCard">
+                        <div class="form-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Prediction Result
+                        </div>
+
+                        <!-- Placeholder when no prediction -->
+                        <div class="result-placeholder" id="resultPlaceholder">
+                            <i class="fas fa-search-location"></i>
+                            <h3>No Prediction Yet</h3>
+                            <p>Fill in the form and click "Predict Crime Risk" to see the analysis</p>
+                        </div>
+
+                        <!-- Result Content -->
+                        <div class="result-content" id="resultContent">
+                            <!-- Gauge -->
+                            <div class="gauge-container">
+                                <div class="gauge">
+                                    <div class="gauge-needle" id="gaugeNeedle"></div>
+                                </div>
+                            </div>
+
+                            <!-- Risk Indicator -->
+                            <div class="risk-indicator" id="riskIndicator">
+                                <div class="risk-icon" id="riskIcon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="risk-label" id="riskLabel">HIGH RISK</div>
+                                <div class="risk-probability" id="riskProbability">87.5%</div>
+                                <div class="risk-subtitle">Probability of High-Risk Crime Zone</div>
+                            </div>
+
+                            <!-- Prediction Details -->
+                            <div class="prediction-details">
+                                <h4><i class="fas fa-info-circle"></i> Analysis Details</h4>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Model Used</div>
+                                        <div class="detail-value">Gradient Boosted Trees</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Model Accuracy</div>
+                                        <div class="detail-value">99.14%</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Confidence</div>
+                                        <div class="detail-value" id="confidenceValue">High</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Classification</div>
+                                        <div class="detail-value" id="classificationValue">Property Crime Zone</div>
+                                    </div>
+                                </div>
+
+                                <!-- Contributing Factors -->
+                                <div class="factors-list">
+                                    <h4><i class="fas fa-exclamation-circle"></i> Contributing Risk Factors</h4>
+                                    <div id="factorsList">
+                                        <!-- Dynamically populated -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Prediction History -->
+                <div class="chart-card" style="margin-top: 2rem;">
+                    <div class="chart-header">
+                        <div class="chart-title">
+                            <i class="fas fa-history"></i>
+                            Recent Predictions
+                        </div>
+                        <button onclick="clearHistory()" style="background: var(--dark); border: 1px solid var(--border); color: var(--text-secondary); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem;">
+                            <i class="fas fa-trash-alt"></i> Clear
+                        </button>
+                    </div>
+                    <div id="predictionHistory" style="margin-top: 1rem;">
+                        <p style="color: var(--text-muted); text-align: center; padding: 2rem;">No predictions yet. Make your first prediction above!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-logo">🔍 SF Crime Analytics</div>
+        <p>Built with PySpark, Machine Learning, and 💜</p>
+        <p style="margin-top: 0.5rem; font-size: 0.85rem;">
+            BDA Lab Mini Project | San Francisco Crime Data Analysis
+        </p>
+    </footer>
+
+    <!-- Predict Section -->
+    <style>
+        /* Prediction Section Styles */
+        .predict-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .predict-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .predict-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .predict-form-card {
+            background: var(--dark-card);
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .predict-form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-1);
+        }
+
+        .form-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-title i {
+            font-size: 1.6rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-label i {
+            margin-right: 8px;
+            color: var(--primary-light);
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+            padding-right: 45px;
+        }
+
+        .form-select option {
+            background: var(--dark-card);
+            color: var(--text-primary);
+            padding: 10px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .predict-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 14px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            margin-top: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .predict-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .predict-btn:hover::before {
+            left: 100%;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .predict-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .predict-btn.loading {
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .predict-btn.loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Result Card */
+        .result-card {
+            background: var(--dark-card);
+            border-radius: 24px;
+            padding: 2rem;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-4);
+        }
+
+        .result-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 3rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .result-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .result-placeholder h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .result-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .result-content.active {
+            display: block;
+        }
+
+        .risk-indicator {
+            text-align: center;
+            padding: 2rem;
+            border-radius: 20px;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .risk-indicator.high-risk {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .risk-indicator.low-risk {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.1) 100%);
+            border: 2px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .risk-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .risk-indicator.high-risk .risk-icon {
+            color: #ef4444;
+            text-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+        }
+
+        .risk-indicator.low-risk .risk-icon {
+            color: #22c55e;
+            text-shadow: 0 0 30px rgba(34, 197, 94, 0.5);
+        }
+
+        .risk-label {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-indicator.high-risk .risk-label {
+            color: #ef4444;
+        }
+
+        .risk-indicator.low-risk .risk-label {
+            color: #22c55e;
+        }
+
+        .risk-probability {
+            font-size: 3rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+
+        .risk-indicator.high-risk .risk-probability {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .risk-indicator.low-risk .risk-probability {
+            background: linear-gradient(135deg, #22c55e, #14b8a6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .risk-subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .prediction-details {
+            background: var(--dark);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        .prediction-details h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prediction-details h4 i {
+            color: var(--primary-light);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .detail-item {
+            padding: 1rem;
+            background: var(--dark-card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .factors-list {
+            margin-top: 1.5rem;
+        }
+
+        .factors-list h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .factor-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0.75rem 1rem;
+            background: var(--dark-card);
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            border-left: 3px solid;
+        }
+
+        .factor-item.positive {
+            border-color: #ef4444;
+        }
+
+        .factor-item.negative {
+            border-color: #22c55e;
+        }
+
+        .factor-item i {
+            font-size: 1.2rem;
+        }
+
+        .factor-item.positive i {
+            color: #ef4444;
+        }
+
+        .factor-item.negative i {
+            color: #22c55e;
+        }
+
+        .factor-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Gauge Animation */
+        .gauge-container {
+            position: relative;
+            width: 200px;
+            height: 100px;
+            margin: 0 auto 1rem;
+        }
+
+        .gauge {
+            width: 200px;
+            height: 100px;
+            border-radius: 100px 100px 0 0;
+            background: linear-gradient(90deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10px;
+            right: 10px;
+            height: 80px;
+            background: var(--dark-card);
+            border-radius: 80px 80px 0 0;
+        }
+
+        .gauge-needle {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 4px;
+            height: 70px;
+            background: white;
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(0deg);
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 4px;
+            z-index: 10;
+        }
+
+        .gauge-needle::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 14px;
+            height: 14px;
+            background: white;
+            border-radius: 50%;
+        }
+
+        /* Quick Select Buttons */
+        .quick-select {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .quick-btn {
+            padding: 6px 12px;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        /* Pulse animation for result */
+        @keyframes resultPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(99, 102, 241, 0); }
+        }
+
+        .result-card.has-result {
+            animation: resultPulse 2s ease-out;
+        }
+    </style>
+
+    <!-- Image Modal -->
+    <div class="modal" id="imageModal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <img id="modalImage" src="" alt="Visualization">
+        </div>
+    </div>
+
+    <script>
+        // Generate Particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        createParticles();
+
+        // Navigation
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            // Update nav links
+            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        // Modal functions
+        function openModal(imageSrc) {
+            document.getElementById('modalImage').src = imageSrc;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Chart.js Configuration
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Inter';
+
+        // Model Comparison Chart
+        const modelCtx = document.getElementById('modelComparisonChart').getContext('2d');
+        new Chart(modelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Random Forest', 'Gradient Boosted Trees', 'Logistic Regression'],
+                datasets: [{
+                    label: 'Accuracy',
+                    data: [98.85, 99.14, 82.15],
+                    backgroundColor: [
+                        'rgba(34, 197, 94, 0.8)',
+                        'rgba(245, 158, 11, 0.8)',
+                        'rgba(99, 102, 241, 0.8)'
+                    ],
+                    borderColor: [
+                        '#22c55e',
+                        '#f59e0b',
+                        '#6366f1'
+                    ],
+                    borderWidth: 2,
+                    borderRadius: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 70,
+                        max: 100,
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        ticks: { callback: value => value + '%' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Hourly Crime Chart
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'line',
+            data: {
+                labels: Array.from({length: 24}, (_, i) => i + ':00'),
+                datasets: [{
+                    label: 'Crime Count',
+                    data: [320, 280, 240, 200, 180, 220, 380, 520, 580, 620, 680, 750, 
+                           820, 780, 850, 920, 980, 1050, 1020, 950, 880, 720, 580, 420],
+                    fill: true,
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    tension: 0.4,
+                    pointBackgroundColor: '#6366f1',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Daily Crime Chart
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                datasets: [{
+                    label: 'Crimes',
+                    data: [6800, 7200, 7100, 7300, 7400, 7800, 7100],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(59, 130, 246, 0.8)',
+                        'rgba(236, 72, 153, 0.8)',
+                        'rgba(239, 68, 68, 0.8)'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Category Chart
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Larceny/Theft', 'Other Offenses', 'Non-Criminal', 'Assault', 'Vehicle Theft', 'Vandalism', 'Warrants', 'Burglary'],
+                datasets: [{
+                    data: [25, 15, 12, 10, 9, 8, 7, 6],
+                    backgroundColor: [
+                        '#ef4444',
+                        '#f59e0b',
+                        '#22c55e',
+                        '#6366f1',
+                        '#ec4899',
+                        '#14b8a6',
+                        '#8b5cf6',
+                        '#f97316'
+                    ],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { padding: 15 }
+                    }
+                }
+            }
+        });
+
+        // District Chart
+        const districtCtx = document.getElementById('districtChart').getContext('2d');
+        new Chart(districtCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Southern', 'Mission', 'Northern', 'Bayview', 'Central', 'Tenderloin', 'Ingleside', 'Taraval', 'Park', 'Richmond'],
+                datasets: [{
+                    label: 'Crimes',
+                    data: [8500, 7200, 6800, 5500, 5200, 4800, 4200, 3800, 3200, 2800],
+                    backgroundColor: 'rgba(236, 72, 153, 0.8)',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Feature Importance Chart
+        const featureCtx = document.getElementById('featureImportanceChart').getContext('2d');
+        new Chart(featureCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Category_Index', 'District_Index', 'Hour', 'X_Norm', 'Y_Norm', 'Grid_X', 'Grid_Y', 
+                         'Month', 'DayOfWeek_Index', 'IsNight', 'IsWeekend', 'Hour_Sin', 'Hour_Cos', 'IsRushHour', 'IsAfternoon'],
+                datasets: [{
+                    label: 'Importance',
+                    data: [0.42, 0.18, 0.12, 0.08, 0.06, 0.04, 0.03, 0.02, 0.015, 0.012, 0.01, 0.008, 0.006, 0.005, 0.004],
+                    backgroundColor: (context) => {
+                        const gradient = context.chart.ctx.createLinearGradient(0, 0, 500, 0);
+                        gradient.addColorStop(0, 'rgba(99, 102, 241, 0.8)');
+                        gradient.addColorStop(1, 'rgba(236, 72, 153, 0.8)');
+                        return gradient;
+                    },
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                    },
+                    y: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+
+        // Risk Chart
+        const riskCtx = document.getElementById('riskChart').getContext('2d');
+        new Chart(riskCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Southern', 'Mission', 'Northern', 'Tenderloin', 'Bayview', 'Central', 'Ingleside', 'Taraval'],
+                datasets: [{
+                    label: 'Risk Score',
+                    data: [95, 88, 82, 78, 75, 68, 55, 45],
+                    fill: true,
+                    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                    borderColor: '#ef4444',
+                    pointBackgroundColor: '#ef4444',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+                        pointLabels: { font: { size: 11 } }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Animate numbers on scroll
+        function animateValue(element, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                element.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+
+        // Initial animation
+        setTimeout(() => {
+            animateValue(document.getElementById('totalRecords'), 0, 50136, 2000);
+        }, 500);
+
+        // =====================================================
+        // PREDICTION FUNCTIONALITY
+        // =====================================================
+
+        // Property crimes list (matching the model training)
+        const PROPERTY_CRIMES = [
+            "LARCENY/THEFT", "VEHICLE THEFT", "BURGLARY", "STOLEN PROPERTY",
+            "VANDALISM", "ARSON", "EMBEZZLEMENT", "BAD CHECKS", "FORGERY/COUNTERFEITING"
+        ];
+
+        // High crime districts
+        const HIGH_CRIME_DISTRICTS = ["SOUTHERN", "MISSION", "NORTHERN", "TENDERLOIN", "BAYVIEW"];
+
+        // District risk scores (based on model training data)
+        const districtRiskScores = {
+            'SOUTHERN': 0.92,
+            'MISSION': 0.88,
+            'NORTHERN': 0.82,
+            'TENDERLOIN': 0.85,
+            'BAYVIEW': 0.78,
+            'CENTRAL': 0.72,
+            'INGLESIDE': 0.65,
+            'TARAVAL': 0.55,
+            'PARK': 0.48,
+            'RICHMOND': 0.42
+        };
+
+        // Hour risk multipliers
+        const hourRiskMultipliers = {
+            0: 0.7, 1: 0.6, 2: 0.55, 3: 0.5, 4: 0.48, 5: 0.52,
+            6: 0.6, 7: 0.7, 8: 0.75, 9: 0.78, 10: 0.8, 11: 0.85,
+            12: 0.9, 13: 0.92, 14: 0.95, 15: 0.97, 16: 0.98, 17: 1.0,
+            18: 0.98, 19: 0.95, 20: 0.9, 21: 0.85, 22: 0.8, 23: 0.75
+        };
+
+        // Day of week multipliers
+        const dayRiskMultipliers = {
+            'Monday': 0.92,
+            'Tuesday': 0.90,
+            'Wednesday': 0.93,
+            'Thursday': 0.95,
+            'Friday': 1.0,
+            'Saturday': 0.88,
+            'Sunday': 0.85
+        };
+
+        // Prediction history
+        let predictionHistory = [];
+
+        // Helper functions
+        function setDistrict(district) {
+            document.getElementById('district').value = district;
+        }
+
+        function setLocation(lon, lat, district) {
+            document.getElementById('longitude').value = lon;
+            document.getElementById('latitude').value = lat;
+            if (district) {
+                document.getElementById('district').value = district;
+            }
+        }
+
+        function clearHistory() {
+            predictionHistory = [];
+            document.getElementById('predictionHistory').innerHTML = 
+                '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No predictions yet. Make your first prediction above!</p>';
+        }
+
+        // Main prediction function - simulates the GBT model logic
+        function predictCrimeRisk(formData) {
+            let riskScore = 0.5; // Base risk
+            let factors = [];
+
+            // 1. District Risk (major factor - matches Category_Index importance)
+            const districtRisk = districtRiskScores[formData.district] || 0.5;
+            riskScore += (districtRisk - 0.5) * 0.35;
+            
+            if (HIGH_CRIME_DISTRICTS.includes(formData.district)) {
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-building',
+                    text: `${formData.district} is a high-crime district (+${((districtRisk - 0.5) * 35).toFixed(0)}% risk)`
+                });
+            } else {
+                factors.push({
+                    type: 'negative',
+                    icon: 'fa-shield-alt',
+                    text: `${formData.district} has relatively lower crime rates`
+                });
+            }
+
+            // 2. Crime Category Risk (major factor)
+            const isPropertyCrime = PROPERTY_CRIMES.includes(formData.category);
+            if (isPropertyCrime) {
+                riskScore += 0.25;
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-car-crash',
+                    text: `${formData.category} is a property crime type (+25% risk)`
+                });
+            }
+
+            // 3. Hour Risk
+            const hourRisk = hourRiskMultipliers[formData.hour];
+            riskScore += (hourRisk - 0.75) * 0.15;
+            
+            const hour = parseInt(formData.hour);
+            if (hour >= 14 && hour <= 20) {
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-sun',
+                    text: `Peak crime hours (2PM-8PM) detected (+${((hourRisk - 0.75) * 15).toFixed(0)}% risk)`
+                });
+            } else if (hour >= 0 && hour <= 5) {
+                factors.push({
+                    type: 'negative',
+                    icon: 'fa-moon',
+                    text: 'Late night hours typically have lower crime activity'
+                });
+            }
+
+            // 4. Day of Week
+            const dayRisk = dayRiskMultipliers[formData.dayOfWeek];
+            riskScore += (dayRisk - 0.9) * 0.08;
+            
+            if (formData.dayOfWeek === 'Friday') {
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-calendar-check',
+                    text: 'Friday shows highest crime activity (+8% risk)'
+                });
+            } else if (formData.dayOfWeek === 'Sunday' || formData.dayOfWeek === 'Saturday') {
+                factors.push({
+                    type: 'negative',
+                    icon: 'fa-calendar-week',
+                    text: 'Weekend days show slightly lower crime rates'
+                });
+            }
+
+            // 5. Location-based adjustment (normalized coordinates)
+            const lon = parseFloat(formData.longitude);
+            const lat = parseFloat(formData.latitude);
+            
+            // Downtown SF has higher crime
+            if (lon > -122.42 && lon < -122.40 && lat > 37.77 && lat < 37.79) {
+                riskScore += 0.08;
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-city',
+                    text: 'Downtown/Financial District area - high activity zone'
+                });
+            }
+
+            // 6. Month seasonality (slight adjustment)
+            const month = parseInt(formData.month);
+            if (month >= 6 && month <= 9) {
+                riskScore += 0.03;
+                factors.push({
+                    type: 'positive',
+                    icon: 'fa-thermometer-half',
+                    text: 'Summer months show slightly elevated crime rates'
+                });
+            }
+
+            // Normalize score between 0 and 1
+            riskScore = Math.max(0, Math.min(1, riskScore));
+
+            // Add small random variation for realism (±2%)
+            riskScore += (Math.random() - 0.5) * 0.04;
+            riskScore = Math.max(0, Math.min(1, riskScore));
+
+            return {
+                probability: riskScore,
+                isHighRisk: riskScore >= 0.5,
+                factors: factors,
+                confidence: riskScore > 0.7 || riskScore < 0.3 ? 'High' : 'Medium',
+                classification: isPropertyCrime ? 'Property Crime Zone' : 'General Crime Zone'
+            };
+        }
+
+        // Form submission handler
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const btn = document.getElementById('predictBtn');
+            btn.classList.add('loading');
+            btn.innerHTML = '<i class="fas fa-spinner"></i> Analyzing...';
+
+            // Collect form data
+            const formData = {
+                district: document.getElementById('district').value,
+                category: document.getElementById('category').value,
+                hour: parseInt(document.getElementById('hour').value),
+                dayOfWeek: document.getElementById('dayOfWeek').value,
+                longitude: document.getElementById('longitude').value,
+                latitude: document.getElementById('latitude').value,
+                month: document.getElementById('month').value
+            };
+
+            // Simulate processing delay for realism
+            setTimeout(() => {
+                const result = predictCrimeRisk(formData);
+                displayResult(result, formData);
+                addToHistory(result, formData);
+
+                btn.classList.remove('loading');
+                btn.innerHTML = '<i class="fas fa-brain"></i> Predict Crime Risk';
+            }, 1500);
+        });
+
+        // Display prediction result
+        function displayResult(result, formData) {
+            const placeholder = document.getElementById('resultPlaceholder');
+            const content = document.getElementById('resultContent');
+            const resultCard = document.getElementById('resultCard');
+
+            placeholder.style.display = 'none';
+            content.classList.add('active');
+            resultCard.classList.add('has-result');
+
+            // Update risk indicator
+            const riskIndicator = document.getElementById('riskIndicator');
+            const riskIcon = document.getElementById('riskIcon');
+            const riskLabel = document.getElementById('riskLabel');
+            const riskProbability = document.getElementById('riskProbability');
+
+            riskIndicator.className = 'risk-indicator ' + (result.isHighRisk ? 'high-risk' : 'low-risk');
+            riskIcon.innerHTML = result.isHighRisk ? 
+                '<i class="fas fa-exclamation-triangle"></i>' : 
+                '<i class="fas fa-check-circle"></i>';
+            riskLabel.textContent = result.isHighRisk ? 'HIGH RISK ZONE' : 'LOW RISK ZONE';
+            riskProbability.textContent = (result.probability * 100).toFixed(1) + '%';
+
+            // Update gauge needle
+            const gaugeNeedle = document.getElementById('gaugeNeedle');
+            const rotation = -90 + (result.probability * 180);
+            gaugeNeedle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+
+            // Update details
+            document.getElementById('confidenceValue').textContent = result.confidence;
+            document.getElementById('classificationValue').textContent = result.classification;
+
+            // Update factors list
+            const factorsList = document.getElementById('factorsList');
+            factorsList.innerHTML = result.factors.map(factor => `
+                <div class="factor-item ${factor.type}">
+                    <i class="fas ${factor.icon}"></i>
+                    <span class="factor-text">${factor.text}</span>
+                </div>
+            `).join('');
+
+            // Remove animation class after it plays
+            setTimeout(() => {
+                resultCard.classList.remove('has-result');
+            }, 2000);
+        }
+
+        // Add prediction to history
+        function addToHistory(result, formData) {
+            const timestamp = new Date().toLocaleTimeString();
+            
+            predictionHistory.unshift({
+                result,
+                formData,
+                timestamp
+            });
+
+            // Keep only last 5
+            if (predictionHistory.length > 5) {
+                predictionHistory.pop();
+            }
+
+            updateHistoryDisplay();
+        }
+
+        // Update history display
+        function updateHistoryDisplay() {
+            const historyContainer = document.getElementById('predictionHistory');
+            
+            if (predictionHistory.length === 0) {
+                historyContainer.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No predictions yet. Make your first prediction above!</p>';
+                return;
+            }
+
+            historyContainer.innerHTML = `
+                <div style="display: grid; gap: 0.75rem;">
+                    ${predictionHistory.map((item, index) => `
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--dark); border-radius: 12px; border-left: 4px solid ${item.result.isHighRisk ? '#ef4444' : '#22c55e'};">
+                            <div style="width: 50px; height: 50px; border-radius: 12px; background: ${item.result.isHighRisk ? 'rgba(239, 68, 68, 0.2)' : 'rgba(34, 197, 94, 0.2)'}; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas ${item.result.isHighRisk ? 'fa-exclamation-triangle' : 'fa-check-circle'}" style="color: ${item.result.isHighRisk ? '#ef4444' : '#22c55e'}; font-size: 1.3rem;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 4px;">
+                                    ${item.formData.district} - ${item.formData.category}
+                                </div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted);">
+                                    ${item.formData.dayOfWeek} at ${item.formData.hour}:00 • ${item.timestamp}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 1.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: ${item.result.isHighRisk ? '#ef4444' : '#22c55e'};">
+                                    ${(item.result.probability * 100).toFixed(1)}%
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                    ${item.result.isHighRisk ? 'High Risk' : 'Low Risk'}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Auto-fill current time
+        function setCurrentTime() {
+            const now = new Date();
+            document.getElementById('hour').value = now.getHours();
+            document.getElementById('month').value = now.getMonth() + 1;
+            
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            document.getElementById('dayOfWeek').value = days[now.getDay()];
+        }
+
+        // Initialize with current time
+        setCurrentTime();
+    </script>
+</body>
+</html>

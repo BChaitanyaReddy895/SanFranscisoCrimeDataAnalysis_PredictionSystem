@@ -1,0 +1,35 @@
+{
+  "report_generated": "2025-11-30 10:13:02",
+  "dataset_info": {
+    "total_records_analyzed": 50136,
+    "training_samples": 40276,
+    "test_samples": 9860,
+    "unique_crime_categories": 38,
+    "date_range": "2003-2015 (San Francisco Crime Data)"
+  },
+  "model_performance": {
+    "random_forest": {
+      "accuracy": 0.9885395537525355,
+      "description": "Ensemble method using 100 decision trees"
+    },
+    "gradient_boosted_trees": {
+      "accuracy": 0.9913793103448276,
+      "description": "Sequential ensemble with boosting"
+    },
+    "logistic_regression": {
+      "accuracy": 0.821501014198783,
+      "description": "Linear classifier with regularization"
+    }
+  },
+  "best_model": "Gradient Boosted Trees",
+  "visualizations_generated": [
+    "crime_heatmap.html",
+    "crime_category_distribution.png",
+    "crime_by_hour.png",
+    "crime_by_dayofweek.png",
+    "crime_by_month.png",
+    "crime_by_district.png",
+    "confusion_matrix.png",
+    "feature_importance.png"
+  ]
+}
