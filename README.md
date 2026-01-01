@@ -219,6 +219,16 @@ BDA Lab Mini Project/
 ### Source
 **San Francisco Police Department Crime Data (2003-2015)**
 
+📊 **Download Dataset from Kaggle:**
+- **Competition**: [San Francisco Crime Classification](https://www.kaggle.com/competitions/sf-crime)
+- **Data Source**: [SF OpenData](https://data.sfgov.org/)
+
+**How to Download:**
+1. Visit: https://www.kaggle.com/competitions/sf-crime/data
+2. Join the competition (free)
+3. Download `train.csv` and `test.csv`
+4. Place the CSV files in the project root directory
+
 ### Statistics
 | Metric | Value |
 |--------|-------|
@@ -228,13 +238,14 @@ BDA Lab Mini Project/
 | Test Set | 9,860 (20%) |
 | Crime Categories | 38 |
 | Police Districts | 10 |
+| Time Period | 2003-2015 (12+ years) |
 
 ### Key Columns
 - `Dates` - Timestamp of incident
 - `Category` - Type of crime
 - `DayOfWeek` - Day of the week
 - `PdDistrict` - Police department district
-- `X`, `Y` - Geographic coordinates
+- `X`, `Y` - Geographic coordinates (longitude, latitude)
 
 ---
 
